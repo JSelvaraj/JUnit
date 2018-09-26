@@ -10,7 +10,16 @@ import interfaces.ILoyaltyCardOwner;
  */
 public class LoyaltyCard implements ILoyaltyCard {
 
-    String owner = "";
+    private ILoyaltyCardOwner owner = null;
+
+    /*
+    This constructor takes in a ILoyaltyCardOwner object to create a loyaltyCard object
+    @param loyaltyCardOwner an object that represents the owner of the card see: LoyaltyCardOwner.java
+     */
+
+    public LoyaltyCard(ILoyaltyCardOwner loyaltyCardOwner) {
+        this.owner = loyaltyCardOwner;
+    }
 
     @Override
     public ILoyaltyCardOwner getOwner() {
