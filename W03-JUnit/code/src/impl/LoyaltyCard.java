@@ -11,42 +11,47 @@ import interfaces.ILoyaltyCardOwner;
 public class LoyaltyCard implements ILoyaltyCard {
 
     private ILoyaltyCardOwner owner = null;
+    private int number_of_uses = 0;
+    private int number_of_points = 0;
 
-    /*
-    This constructor takes in a ILoyaltyCardOwner object to create a loyaltyCard object
-    @param loyaltyCardOwner an object that represents the owner of the card see: LoyaltyCardOwner.java
+    /**
+    * This constructor takes in a ILoyaltyCardOwner object to create a loyaltyCard object.
+    * @param loyaltyCardOwner an object that represents the owner of the card see: LoyaltyCardOwner.java.
      */
-
     public LoyaltyCard(ILoyaltyCardOwner loyaltyCardOwner) {
         this.owner = loyaltyCardOwner;
     }
 
     @Override
     public ILoyaltyCardOwner getOwner() {
-        // TODO Auto-generated method stub
-        return null;
+        return owner;
     }
 
     @Override
     public int getNumberOfUses() {
-        // TODO Auto-generated method stub
-        return 0;
+        return number_of_uses;
     }
 
     @Override
     public int getNumberOfPoints() {
-        // TODO Auto-generated method stub
-        return 0;
+        return number_of_points;
     }
 
     @Override
     public void addPoints(int points) {
-        // TODO Auto-generated method stub
+        if(points < 0) {
+            return;
+        }
+        number_of_points += points;
     }
 
     @Override
     public void usePoints(int points) throws InsufficientPointsException {
-        // TODO Auto-generated method stub
+            if (points > number_of_points) {
+                throw new InsufficientPointsException();
+            }
+            number_of_points -= points;
+            number_of_uses++;
     }
 
 }
