@@ -55,5 +55,6 @@ public class Tests extends AbstractFactoryClient {
     public void loyaltyCardOwnerBlankInput() {
         ILoyaltyCardOwner loyaltyCardOwner = getFactory().makeLoyaltyCardOwner("","");
         assertTrue(loyaltyCardOwner == null);
+        return true;
     }
 }
