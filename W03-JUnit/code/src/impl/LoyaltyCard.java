@@ -39,7 +39,7 @@ public class LoyaltyCard implements ILoyaltyCard {
 
     @Override
     public void addPoints(int points) {
-        if(points < 0) {
+        if (points < 0) {
             return;
         }
         number_of_points += points;

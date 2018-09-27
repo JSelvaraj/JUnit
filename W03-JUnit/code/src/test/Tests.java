@@ -1,9 +1,14 @@
 package test;
 
 import common.InsufficientPointsException;
+import common.NoOwnerProvidedException;
+import common.OwnerAlreadyRegisteredException;
+import impl.LoyaltyCardOperator;
 import interfaces.ILoyaltyCard;
+import interfaces.ILoyaltyCardOperator;
 import org.junit.Test;
 import org.junit.Before;
+import java.lang.Object;
 
 import common.AbstractFactoryClient;
 import interfaces.ILoyaltyCardOwner;
@@ -159,7 +164,7 @@ public class Tests extends AbstractFactoryClient {
      * This checks that addPoints method still works when 0 points are added.
      */
     @Test
-    public void addPointsWrongType() {
+    public void add0Points() {
         ILoyaltyCard loyaltyCard = getFactory().makeLoyaltyCard(testLoyaltyCardOwner);
         loyaltyCard.addPoints(0);
         assertTrue(loyaltyCard.getNumberOfPoints() == 0);
@@ -174,6 +179,49 @@ public class Tests extends AbstractFactoryClient {
         loyaltyCard.addPoints(-20);
         assertFalse(loyaltyCard.getNumberOfPoints() < 0);
     }
+
+    /**
+     * This checks that the number of uses field correctly initializes to 0.
+     */
+    @Test
+    public void checkInitialNumberOfUses() {
+        ILoyaltyCard loyaltyCard = getFactory().makeLoyaltyCard(testLoyaltyCardOwner);
+        assertTrue(loyaltyCard.getNumberOfUses() == 0);
+    }
+
+    /**
+     * This checks that the number of uses field correctly updates when the the card is uses
+     * and the usePoints method is called.
+     */
+    @Test
+    public void checkNumberOfUses() throws InsufficientPointsException {
+        ILoyaltyCard loyaltyCard = getFactory().makeLoyaltyCard(testLoyaltyCardOwner);
+        assertTrue(loyaltyCard.getNumberOfUses() == 0);
+        loyaltyCard.addPoints(20);
+        loyaltyCard.usePoints(5);
+        assertTrue(loyaltyCard.getNumberOfUses() == 1);
+        loyaltyCard.usePoints(5);
+        assertTrue(loyaltyCard.getNumberOfUses() == 2);
+    }
+
+    @Test
+    public void checkLoyaltyCardOwnerRegistered() throws OwnerAlreadyRegisteredException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+    }
+
+//    /**
+//     * This checks that an Exception is thrown when a null value is passed  into the makeLoyaltyCard method.
+//     */
+//    @Test (expected = NoOwnerProvidedException.class)
+//    public void makeLoyaltyCardNullInput() throws NoOwnerProvidedException {
+//        ILoyaltyCard loyaltyCard = getFactory().makeLoyaltyCard(null);
+//    }
+
+    /**
+     * This checks that a new loyalty card owner is successfully registered.
+     */
+
+
 
 
 

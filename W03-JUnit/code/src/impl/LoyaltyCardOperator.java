@@ -8,15 +8,25 @@ import interfaces.ILoyaltyCard;
 import interfaces.ILoyaltyCardOperator;
 import interfaces.ILoyaltyCardOwner;
 
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * This class represents a simple loyalty card operator.
  *
  */
 public class LoyaltyCardOperator extends AbstractFactoryClient implements ILoyaltyCardOperator {
 
+    private Hashtable loyaltyCardOwnerList;
+    private static int hash_MODULO = 10;
+
+
     @Override
     public void registerOwner(ILoyaltyCardOwner loyaltyCardOwner) throws OwnerAlreadyRegisteredException {
-        // TODO Auto-generated method stub
+        int key = loyaltyCardOwner.hashCode() % hash_MODULO;
+        loyaltyCardOwnerList.put(key, loyaltyCardOwner);
     }
 
     @Override
@@ -37,8 +47,8 @@ public class LoyaltyCardOperator extends AbstractFactoryClient implements ILoyal
 
     @Override
     public int getNumberOfCustomers() {
-        // TODO Auto-generated method stub
         return 0;
+
     }
 
     @Override
@@ -65,4 +75,13 @@ public class LoyaltyCardOperator extends AbstractFactoryClient implements ILoyal
         return null;
     }
 
+    /**
+     * This method gets a checks if a loyalty card owner is currently registered.
+     * @param key represents the key to find the associated value in the hashmap.
+     * @returns the value associated witht the above key if it's in the map. Returns null otherwise.
+     */
+    public ILoyaltyCardOwner getLoyaltyCardOwner(int key) {
+        ILoyaltyCardOwner loyaltyCardOwner = (ILoyaltyCardOwner) loyaltyCardOwnerList.get(key);
+        return loyaltyCardOwner;
+    }
 }
