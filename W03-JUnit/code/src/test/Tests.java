@@ -405,6 +405,21 @@ public class Tests extends AbstractFactoryClient {
         testOperator.getNumberOfUses(testLoyaltyCardOwner.getEmail());
     }
 
+    @Test
+    public void checkGetMostUses()
+            throws OwnerAlreadyRegisteredException, OwnerNotRegisteredException, InsufficientPointsException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        ILoyaltyCardOwner loyaltyCardOwner = getFactory().makeLoyaltyCardOwner("jon@jon.com", "Jon");
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        testOperator.registerOwner(loyaltyCardOwner);
+        testOperator.processMoneyPurchase(testLoyaltyCardOwner.getEmail(),2000);
+        testOperator.processMoneyPurchase(loyaltyCardOwner.getEmail(), 5000);
+        testOperator.processPointsPurchase(testLoyaltyCardOwner.getEmail(), 10);
+        testOperator.processPointsPurchase(testLoyaltyCardOwner.getEmail(), 10);
+        testOperator.processPointsPurchase(loyaltyCardOwner.getEmail(), 5);
+        assertTrue(testOperator.getMostUsed() == testLoyaltyCardOwner);
+    }
+
 
 
 
