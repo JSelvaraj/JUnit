@@ -8,10 +8,7 @@ import interfaces.ILoyaltyCard;
 import interfaces.ILoyaltyCardOperator;
 import interfaces.ILoyaltyCardOwner;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class represents a simple loyalty card operator.
@@ -19,69 +16,94 @@ import java.util.Map;
  */
 public class LoyaltyCardOperator extends AbstractFactoryClient implements ILoyaltyCardOperator {
 
-    private Hashtable loyaltyCardOwnerList;
-    private static int hash_MODULO = 10;
+    private Hashtable<String, ILoyaltyCard> loyaltyCardOwnerList =
+            new Hashtable<String, ILoyaltyCard>();
+    private static int PENCE_PER_POINTS = 100;
 
 
     @Override
     public void registerOwner(ILoyaltyCardOwner loyaltyCardOwner) throws OwnerAlreadyRegisteredException {
-        int key = loyaltyCardOwner.hashCode() % hash_MODULO;
-        loyaltyCardOwnerList.put(key, loyaltyCardOwner);
+
+        if (loyaltyCardOwnerList.get(loyaltyCardOwner.getEmail()) == null) {
+            ILoyaltyCard loyaltyCard = getFactory().makeLoyaltyCard(loyaltyCardOwner);
+            loyaltyCardOwnerList.put(loyaltyCardOwner.getEmail(), loyaltyCard);
+        } else {
+            throw new OwnerAlreadyRegisteredException();
+        }
     }
 
     @Override
     public void unregisterOwner(ILoyaltyCardOwner loyaltyCardOwner) throws OwnerNotRegisteredException {
-        // TODO Auto-generated method stub
+        if (loyaltyCardOwnerList.remove(loyaltyCardOwner.getEmail()) == null) {
+            throw new OwnerNotRegisteredException();
+        }
     }
 
     @Override
     public void processMoneyPurchase(String ownerEmail, int pence) throws OwnerNotRegisteredException {
-        // TODO Auto-generated method stub
+
+        ILoyaltyCard loyaltyCard = loyaltyCardOwnerList.get(ownerEmail);
+        int points = pence / PENCE_PER_POINTS;
+        loyaltyCard.addPoints(points);
+        loyaltyCardOwnerList.put(ownerEmail, loyaltyCard);
     }
 
     @Override
     public void processPointsPurchase(String ownerEmail, int pence)
             throws InsufficientPointsException, OwnerNotRegisteredException {
-        // TODO Auto-generated method stub
+        ILoyaltyCard loyaltyCard = loyaltyCardOwnerList.get(ownerEmail);
+        if (loyaltyCard != null) {
+            loyaltyCard.usePoints(pence);
+            loyaltyCardOwnerList.put(ownerEmail, loyaltyCard);
+        } else {
+            throw new OwnerNotRegisteredException();
+        }
     }
 
     @Override
     public int getNumberOfCustomers() {
-        return 0;
+        return loyaltyCardOwnerList.size();
 
     }
 
     @Override
     public int getTotalNumberOfPoints() {
-        // TODO Auto-generated method stub
-        return 0;
+        int total = 0;
+        ILoyaltyCard loyaltyCard = null;
+        Collection<ILoyaltyCard> loyaltyCards = loyaltyCardOwnerList.values();
+        Iterator<ILoyaltyCard> iterator = loyaltyCards.iterator();
+        while (iterator.hasNext()) {
+            loyaltyCard = iterator.next();
+            total += loyaltyCard.getNumberOfPoints();
+        }
+        return total;
     }
+
 
     @Override
     public int getNumberOfPoints(String ownerEmail) throws OwnerNotRegisteredException {
-        // TODO Auto-generated method stub
-        return 0;
+        ILoyaltyCard loyaltyCard = loyaltyCardOwnerList.get(ownerEmail);
+        if (loyaltyCard != null) {
+            return loyaltyCard.getNumberOfPoints();
+        } else {
+            throw new OwnerNotRegisteredException();
+        }
     }
 
     @Override
     public int getNumberOfUses(String ownerEmail) throws OwnerNotRegisteredException {
-        // TODO Auto-generated method stub
-        return 0;
+        ILoyaltyCard loyaltyCard = loyaltyCardOwnerList.get(ownerEmail);
+        if (loyaltyCard != null) {
+            return loyaltyCard.getNumberOfUses();
+        } else {
+            throw new OwnerNotRegisteredException();
+        }
+
     }
 
     @Override
     public ILoyaltyCardOwner getMostUsed() throws OwnerNotRegisteredException {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    /**
-     * This method gets a checks if a loyalty card owner is currently registered.
-     * @param key represents the key to find the associated value in the hashmap.
-     * @returns the value associated witht the above key if it's in the map. Returns null otherwise.
-     */
-    public ILoyaltyCardOwner getLoyaltyCardOwner(int key) {
-        ILoyaltyCardOwner loyaltyCardOwner = (ILoyaltyCardOwner) loyaltyCardOwnerList.get(key);
-        return loyaltyCardOwner;
     }
 }

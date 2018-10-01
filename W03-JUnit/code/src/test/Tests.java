@@ -1,8 +1,6 @@
 package test;
 
-import common.InsufficientPointsException;
-import common.NoOwnerProvidedException;
-import common.OwnerAlreadyRegisteredException;
+import common.*;
 import impl.LoyaltyCardOperator;
 import interfaces.ILoyaltyCard;
 import interfaces.ILoyaltyCardOperator;
@@ -10,7 +8,6 @@ import org.junit.Test;
 import org.junit.Before;
 import java.lang.Object;
 
-import common.AbstractFactoryClient;
 import interfaces.ILoyaltyCardOwner;
 
 import static org.junit.Assert.assertFalse;
@@ -81,15 +78,6 @@ public class Tests extends AbstractFactoryClient {
         ILoyaltyCardOwner loyaltyCardOwner = getFactory().makeLoyaltyCardOwner("", "");
         assertTrue(loyaltyCardOwner == null);
     }
-
-//    /*
-//     * This test ensures that if a null value is given to either of the fields in the ILoyaltyCardOwner object that it
-//     * catches it and informs the user.
-//     */
-//    @Test(expected = NullPointerException.class)
-//    public void nullValueLoyaltyCardOwnerFields() throws NullPointerException {
-//        ILoyaltyCardOwner loyaltyCardOwner = getFactory().makeLoyaltyCardOwner(null, null);
-//    }
 
     /**
      * This checks the factory was able to call a sensible constructor to get a non-null instance of ILoyaltyCard.
@@ -192,6 +180,8 @@ public class Tests extends AbstractFactoryClient {
     /**
      * This checks that the number of uses field correctly updates when the the card is uses
      * and the usePoints method is called.
+     * @throws InsufficientPointsException if the number of points used is greater than the points
+     * on the card.
      */
     @Test
     public void checkNumberOfUses() throws InsufficientPointsException {
@@ -204,22 +194,217 @@ public class Tests extends AbstractFactoryClient {
         assertTrue(loyaltyCard.getNumberOfUses() == 2);
     }
 
+    /**
+     * This checks that the Loyalty Card Operator is initializes correctly.
+     */
     @Test
-    public void checkLoyaltyCardOwnerRegistered() throws OwnerAlreadyRegisteredException {
+    public void checkLoyaltyCardOwnerOperatorNotNull() {
         ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        assertFalse(testOperator == null);
     }
 
-//    /**
-//     * This checks that an Exception is thrown when a null value is passed  into the makeLoyaltyCard method.
-//     */
-//    @Test (expected = NoOwnerProvidedException.class)
-//    public void makeLoyaltyCardNullInput() throws NoOwnerProvidedException {
-//        ILoyaltyCard loyaltyCard = getFactory().makeLoyaltyCard(null);
-//    }
 
     /**
-     * This checks that a new loyalty card owner is successfully registered.
+     * This checks that an loyaltycard owner is successfully registered
+     * @throws OwnerAlreadyRegisteredException because a loyalty card owner object is added
+     * to the hashtable twice.
      */
+    @Test (expected = OwnerAlreadyRegisteredException.class)
+    public void registerLoyaltyCardOwner() throws OwnerAlreadyRegisteredException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        testOperator.registerOwner(testLoyaltyCardOwner);
+    }
+
+    /**
+     * This checks that the unregister owner method works correctly.
+     * @throws OwnerAlreadyRegisteredException should not be thrown in this instance.
+     * @throws OwnerNotRegisteredException should be thrown as the method attempts to remove the same loyalty
+     * card owner twice.
+     */
+    @Test (expected = OwnerNotRegisteredException.class)
+    public void checkUnregistOwner() throws OwnerAlreadyRegisteredException, OwnerNotRegisteredException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        testOperator.unregisterOwner(testLoyaltyCardOwner);
+        testOperator.unregisterOwner(testLoyaltyCardOwner);
+    }
+
+    /**
+     * This checks that the method correctly returns the initial number of points on a loyalty card when it's
+     * registered as zero.
+     * @throws OwnerAlreadyRegisteredException If the loyalty card owner is already registered.
+     * @throws OwnerNotRegisteredException If loyalty card owner is not registered.
+     */
+    @Test
+    public void checkGetNumberOfPointsInitial() throws OwnerAlreadyRegisteredException, OwnerNotRegisteredException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        assertTrue(testOperator.getNumberOfPoints(testLoyaltyCardOwner.getEmail()) == 0);
+    }
+
+    /**
+     * This checks that the correct exception is thrown if the getNumberOfPoints method is called and there isn't
+     * the loyalty card email is not registered.
+     * @throws OwnerNotRegisteredException
+     */
+    @Test (expected = OwnerNotRegisteredException.class)
+    public void getNumberOfPointsFromUnregisteredEmail() throws OwnerNotRegisteredException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.getNumberOfPoints(testLoyaltyCardOwner.getEmail());
+    }
+
+
+    /**
+     * This checks that the ProcessMoneyPurchase method of the LoyaltyCardOperator class can correctly add points to
+     * a particular loyalty card.
+     * @throws OwnerAlreadyRegisteredException If the loyalty card owner is already registered.
+     * @throws OwnerNotRegisteredException If loyalty card owner is not registered.
+     */
+    @Test
+    public void checkProcessMoneyPurchaseIsSuccessful()
+            throws OwnerNotRegisteredException, OwnerAlreadyRegisteredException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        testOperator.processMoneyPurchase(testLoyaltyCardOwner.getEmail(), 200);
+        assertTrue(testOperator.getNumberOfPoints(testLoyaltyCardOwner.getEmail()) == 2);
+    }
+
+    /**
+     * This checks that the ProcessMoneyPurchase method of the LoyaltyCardOperator class can correctly add only
+     * a whole number of points to a particular loyalty card.
+     * @throws OwnerAlreadyRegisteredException If the loyalty card owner is already registered.
+     * @throws OwnerNotRegisteredException If loyalty card owner is not registered.
+     */
+    @Test
+    public void checkProcessMoneyPurchaseNoDecimal()
+            throws OwnerNotRegisteredException, OwnerAlreadyRegisteredException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        testOperator.processMoneyPurchase(testLoyaltyCardOwner.getEmail(), 267);
+        assertTrue(testOperator.getNumberOfPoints(testLoyaltyCardOwner.getEmail()) == 2);
+    }
+
+    /**
+     * This checks that the method that processes purchases using points works successfully with normal inputs.
+     * @throws OwnerAlreadyRegisteredException If the loyalty card owner is already registered.
+     * @throws OwnerNotRegisteredException If loyalty card owner is not registered.
+     * @throws InsufficientPointsException If there are insufficient loyalty points on the loyalty card
+     * to cover the cost of the item.
+     */
+    @Test
+    public void checkProcessPointsPurchaseIsSuccessful()
+            throws OwnerNotRegisteredException, OwnerAlreadyRegisteredException, InsufficientPointsException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        testOperator.processMoneyPurchase(testLoyaltyCardOwner.getEmail(), 2000);
+        testOperator.processPointsPurchase(testLoyaltyCardOwner.getEmail(), 20);
+        assertTrue(testOperator.getNumberOfPoints(testLoyaltyCardOwner.getEmail()) == 0);
+    }
+    /**
+     * This checks that the method that processes purchases using points works successfully if the number of points
+     * used equals the price of the purchase.
+     * @throws OwnerAlreadyRegisteredException If the loyalty card owner is already registered.
+     * @throws OwnerNotRegisteredException If loyalty card owner is not registered.
+     * @throws InsufficientPointsException If there are insufficient loyalty points on the loyalty card
+     * to cover the cost of the item.
+     */
+    @Test
+    public void checkProcessPointsPurchaseCostEqualsPoints()
+            throws OwnerNotRegisteredException, OwnerAlreadyRegisteredException, InsufficientPointsException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        testOperator.processMoneyPurchase(testLoyaltyCardOwner.getEmail(), 2000);
+        testOperator.processPointsPurchase(testLoyaltyCardOwner.getEmail(), 20);
+        assertTrue(testOperator.getNumberOfPoints(testLoyaltyCardOwner.getEmail()) == 0);
+    }
+
+    /**
+     * This checks that the correct exception is thrown when the user attempts to purchase something with points,
+     * but don't have enough points.
+     * @throws OwnerAlreadyRegisteredException If the loyalty card owner is already registered.
+     * @throws OwnerNotRegisteredException If loyalty card owner is not registered.
+     * @throws InsufficientPointsException If there are insufficient loyalty points on the loyalty card
+     * to cover the cost of the item.
+     */
+    @Test (expected = InsufficientPointsException.class)
+    public void checkProcessPointsInsufficientPoints()
+            throws OwnerNotRegisteredException, OwnerAlreadyRegisteredException, InsufficientPointsException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        testOperator.processMoneyPurchase(testLoyaltyCardOwner.getEmail(), 2000);
+        testOperator.processPointsPurchase(testLoyaltyCardOwner.getEmail(), 25);
+    }
+
+    /**
+     * This checks that the OwnerNotRegisterException is thrown when the the LoyaltyCardOperator object attempts to
+     * add points to an email that is not registered.
+     * @throws OwnerNotRegisteredException If the loyaly card owner is not registered.
+     * @throws InsufficientPointsException If there are insufficient loyalty points on the loyalty card associated with
+     * the account.
+     */
+    @Test (expected = OwnerNotRegisteredException.class)
+    public void checkPointPurchaseWhenOwnerEmailNotRegistered()
+            throws OwnerNotRegisteredException, InsufficientPointsException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.processPointsPurchase(testLoyaltyCardOwner.getEmail(), 2000);
+    }
+
+    /**
+     * This checks that the getNumberOfCustomers method works correctly.
+     * @throws OwnerAlreadyRegisteredException if the loyalty card owner is already registered.
+     */
+    @Test
+    public void checkGetNumberOfCustomers() throws OwnerAlreadyRegisteredException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        assertTrue(testOperator.getNumberOfCustomers() == 1);
+    }
+
+    /**
+     * This checks that the getTotalNumberOfPoints method returns the correct number of loyalty points currently stored.
+     * @throws OwnerAlreadyRegisteredException If the loyalty card owner is already registered.
+     * @throws OwnerNotRegisteredException If loyalty card owner is not registered.
+     */
+    @Test
+    public void checkGetTotalNumberOfPoints() throws OwnerNotRegisteredException, OwnerAlreadyRegisteredException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        ILoyaltyCardOwner loyaltyCardOwner = getFactory().makeLoyaltyCardOwner("jon@jon.com", "Jon");
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        testOperator.registerOwner(loyaltyCardOwner);
+        testOperator.processMoneyPurchase(testLoyaltyCardOwner.getEmail(),2000);
+        testOperator.processMoneyPurchase(loyaltyCardOwner.getEmail(), 5000);
+        assertTrue(testOperator.getTotalNumberOfPoints() == 70);
+    }
+
+    /**
+     * This test checks that the getNumberOfUses method in the LoyaltyCardOperator class returns the correct value.
+     * @throws OwnerAlreadyRegisteredException if the owner email is already registered to a loyalty card.
+     * @throws OwnerNotRegisteredException if the owner email is not registered to a loyalty card.
+     * @throws InsufficientPointsException if there are insufficient points on the loyalty card to cover the cost of the
+     * purchase.
+     */
+    @Test
+    public void checkOperatorNumberOfUses()
+            throws OwnerAlreadyRegisteredException, OwnerNotRegisteredException, InsufficientPointsException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.registerOwner(testLoyaltyCardOwner);
+        testOperator.processMoneyPurchase(testLoyaltyCardOwner.getEmail(), 200);
+        testOperator.processPointsPurchase(testLoyaltyCardOwner.getEmail(), 1);
+        assertTrue(testOperator.getNumberOfUses(testLoyaltyCardOwner.getEmail()) == 1);
+    }
+
+    /**
+     * This checks that the OwnerNotRegisteredException is thrown if the LoyaltyCardOperatorObject tries to access a
+     * loyalty card that has not been registered.
+     * @throws OwnerNotRegisteredException if the owner email is not registered.
+     */
+    @Test (expected = OwnerNotRegisteredException.class)
+    public void checkOperatorNumberOfUsesUnregisteredOwnerEmail() throws OwnerNotRegisteredException {
+        ILoyaltyCardOperator testOperator = getFactory().makeLoyaltyCardOperator();
+        testOperator.getNumberOfUses(testLoyaltyCardOwner.getEmail());
+    }
+
 
 
 

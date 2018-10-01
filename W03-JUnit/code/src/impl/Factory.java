@@ -1,6 +1,5 @@
 package impl;
 
-import common.NoOwnerProvidedException;
 import interfaces.IFactory;
 import interfaces.ILoyaltyCard;
 import interfaces.ILoyaltyCardOperator;
@@ -47,6 +46,7 @@ public final class Factory implements IFactory {
 
     @Override
     public ILoyaltyCardOperator makeLoyaltyCardOperator() {
+
         ILoyaltyCardOperator loyaltyCardOperator = new LoyaltyCardOperator();
         return loyaltyCardOperator;
     }
