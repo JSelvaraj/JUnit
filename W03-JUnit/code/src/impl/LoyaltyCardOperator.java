@@ -18,7 +18,7 @@ public class LoyaltyCardOperator extends AbstractFactoryClient implements ILoyal
 
     private Hashtable<String, ILoyaltyCard> loyaltyCardOwnerList =
             new Hashtable<String, ILoyaltyCard>();
-    private static int PENCE_PER_POINTS = 100;
+    private static int rPENCE_PER_POINTS = 100;
 
 
     @Override
@@ -43,7 +43,10 @@ public class LoyaltyCardOperator extends AbstractFactoryClient implements ILoyal
     public void processMoneyPurchase(String ownerEmail, int pence) throws OwnerNotRegisteredException {
 
         ILoyaltyCard loyaltyCard = loyaltyCardOwnerList.get(ownerEmail);
-        int points = pence / PENCE_PER_POINTS;
+        if (loyaltyCard == null) {
+            throw new OwnerNotRegisteredException();
+        }
+        int points = pence / rPENCE_PER_POINTS;
         loyaltyCard.addPoints(points);
         loyaltyCardOwnerList.put(ownerEmail, loyaltyCard);
     }
@@ -52,7 +55,7 @@ public class LoyaltyCardOperator extends AbstractFactoryClient implements ILoyal
     public void processPointsPurchase(String ownerEmail, int pence)
             throws InsufficientPointsException, OwnerNotRegisteredException {
         ILoyaltyCard loyaltyCard = loyaltyCardOwnerList.get(ownerEmail);
-        if (loyaltyCard != null) {
+        if (loyaltyCard != null) { //if loyaltyCard == null that means that the email hasn't been registered.
             loyaltyCard.usePoints(pence);
             loyaltyCardOwnerList.put(ownerEmail, loyaltyCard);
         } else {
@@ -63,18 +66,14 @@ public class LoyaltyCardOperator extends AbstractFactoryClient implements ILoyal
     @Override
     public int getNumberOfCustomers() {
         return loyaltyCardOwnerList.size();
-
     }
 
     @Override
     public int getTotalNumberOfPoints() {
         int total = 0;
-        ILoyaltyCard loyaltyCard = null;
         Collection<ILoyaltyCard> loyaltyCards = loyaltyCardOwnerList.values();
-        Iterator<ILoyaltyCard> iterator = loyaltyCards.iterator();
-        while (iterator.hasNext()) {
-            loyaltyCard = iterator.next();
-            total += loyaltyCard.getNumberOfPoints();
+        for (ILoyaltyCard L: loyaltyCards) {
+            total += L.getNumberOfPoints();
         }
         return total;
     }
@@ -103,6 +102,9 @@ public class LoyaltyCardOperator extends AbstractFactoryClient implements ILoyal
 
     @Override
     public ILoyaltyCardOwner getMostUsed() throws OwnerNotRegisteredException {
+        if (loyaltyCardOwnerList.size() == 0) {
+            throw new OwnerNotRegisteredException();
+        }
         ILoyaltyCard mostUsed = null;
         Collection<ILoyaltyCard> loyaltyCards = loyaltyCardOwnerList.values();
         for (ILoyaltyCard L: loyaltyCards) {
