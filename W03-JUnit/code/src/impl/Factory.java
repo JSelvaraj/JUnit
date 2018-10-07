@@ -31,22 +31,26 @@ public final class Factory implements IFactory {
 
     @Override
     public ILoyaltyCardOwner makeLoyaltyCardOwner(String email, String name) {
-         if (!(email.equals("") || name.equals(""))) {
-             ILoyaltyCardOwner new_owner = new LoyaltyCardOwner(email, name);
-             return new_owner;
-            }
-        return null;
+        if (email.equals("") || name.equals("") || name.equals(null) || email.equals(null)) {
+            throw new IllegalArgumentException();
+        }
+        ILoyaltyCardOwner new_owner = new LoyaltyCardOwner(email, name);
+        return new_owner;
     }
 
     @Override
     public ILoyaltyCard makeLoyaltyCard(ILoyaltyCardOwner loyaltyCardOwner) {
+        if (loyaltyCardOwner == null) {
+            throw new IllegalArgumentException();
+        }
         ILoyaltyCard new_card = new LoyaltyCard(loyaltyCardOwner);
+
         return new_card;
     }
 
     @Override
     public ILoyaltyCardOperator makeLoyaltyCardOperator() {
-        // TODO Auto-generated method stub
-        return null;
+        ILoyaltyCardOperator loyaltyCardOperator = new LoyaltyCardOperator();
+        return loyaltyCardOperator;
     }
 }
